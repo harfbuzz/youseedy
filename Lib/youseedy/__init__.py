@@ -1,0 +1,52 @@
+# Copyright 2019 Facebook Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import print_function, division, absolute_import
+from lxml import etree, objectify
+
+__all__ = ['load_ucdxml']
+
+def process_element(elt, ucd, attrs=None):
+	if elt.tag.endswith('}group'):
+		g = elt.attrib
+		for elt in elt.getchildren():
+			process_element(elt, ucd, g)
+	elif elt.tag.split('}')[1] in ('char', 'noncharacter', 'reserved', 'surrogate'):
+		if attrs is None:
+			u = dict(elt.attrib)
+		else:
+			u = dict(attrs)
+			u.update(elt.attrib)
+		if 'cp' in u:
+			cp = int(u['cp'], 16)
+			del u['cp']
+			ucd[cp] = u
+		else:
+			first_cp = int(u['first-cp'], 16)
+			last_cp = int(u['last-cp'], 16)
+			del u['first-cp'], u['last-cp']
+			for cp in range(first_cp, last_cp + 1):
+				ucd[cp] = u
+
+def load_ucdxml(s):
+	if hasattr(s, 'read'):
+		s = s.read()
+	ucdxml = objectify.fromstring(s)
+	ucd = [None] * 0x110000
+	for elt in ucdxml.repertoire.getchildren():
+		process_element(elt, ucd)
+	return ucd
+
+with open('ucd.nounihan.grouped.xml', 'rb') as f:
+	ucd = load_ucdxml(f)
