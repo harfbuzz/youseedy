@@ -29,6 +29,10 @@ def process_element(elt, ucd, attrs=None):
 		else:
 			u = dict(attrs)
 			u.update(elt.attrib)
+
+		# TODO Handle '#' in values; should be replaced with the codepoint value.
+		# TODO Cast to int for integral values.
+
 		if 'cp' in u:
 			cp = int(u['cp'], 16)
 			del u['cp']
