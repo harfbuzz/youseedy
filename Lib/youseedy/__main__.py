@@ -17,8 +17,7 @@ from . import *
 import sys
 
 def main(args=sys.argv):
-	with open(args[1], 'rb') as f:
-		ucd = load_ucdxml(f)
+	ucd = load_ucdxml(args[1])
 	return 0
 
 if __name__ == "__main__":

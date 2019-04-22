@@ -14,6 +14,7 @@
 
 from __future__ import print_function, division, absolute_import
 from lxml import etree, objectify
+import zipfile
 
 __all__ = ['load_ucdxml']
 
@@ -41,7 +42,16 @@ def process_element(elt, ucd, attrs=None):
 
 def load_ucdxml(s):
 	if hasattr(s, 'read'):
-		s = s.read()
+		s =  s.read()
+	else:
+		if zipfile.is_zipfile(s):
+			with zipfile.ZipFile(s) as z:
+				with z.open(z.namelist()[0]) as s:
+					s = s.read()
+		else:
+			with open(s, 'rb') as s:
+				s = s.read()
+
 	ucdxml = objectify.fromstring(s)
 	ucd = [None] * 0x110000
 	for elt in ucdxml.repertoire.getchildren():
