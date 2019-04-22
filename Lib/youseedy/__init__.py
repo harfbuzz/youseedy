@@ -48,5 +48,3 @@ def load_ucdxml(s):
 		process_element(elt, ucd)
 	return ucd
 
-with open('ucd.nounihan.grouped.xml', 'rb') as f:
-	ucd = load_ucdxml(f)
