@@ -19,46 +19,46 @@ import zipfile
 __all__ = ['load_ucdxml']
 
 def process_element(elt, ucd, attrs=None):
-	if elt.tag.endswith('}group'):
-		g = elt.attrib
-		for elt in elt.getchildren():
-			process_element(elt, ucd, g)
-	elif elt.tag.split('}')[1] in ('char', 'noncharacter', 'reserved', 'surrogate'):
-		if attrs is None:
-			u = dict(elt.attrib)
-		else:
-			u = dict(attrs)
-			u.update(elt.attrib)
+    if elt.tag.endswith('}group'):
+        g = elt.attrib
+        for elt in elt.getchildren():
+            process_element(elt, ucd, g)
+    elif elt.tag.split('}')[1] in ('char', 'noncharacter', 'reserved', 'surrogate'):
+        if attrs is None:
+            u = dict(elt.attrib)
+        else:
+            u = dict(attrs)
+            u.update(elt.attrib)
 
-		# TODO Handle '#' in values; should be replaced with the codepoint value.
-		# TODO Cast to int for integral values.
+        # TODO Handle '#' in values; should be replaced with the codepoint value.
+        # TODO Cast to int for integral values.
 
-		if 'cp' in u:
-			cp = int(u['cp'], 16)
-			del u['cp']
-			ucd[cp] = u
-		else:
-			first_cp = int(u['first-cp'], 16)
-			last_cp = int(u['last-cp'], 16)
-			del u['first-cp'], u['last-cp']
-			for cp in range(first_cp, last_cp + 1):
-				ucd[cp] = u
+        if 'cp' in u:
+            cp = int(u['cp'], 16)
+            del u['cp']
+            ucd[cp] = u
+        else:
+            first_cp = int(u['first-cp'], 16)
+            last_cp = int(u['last-cp'], 16)
+            del u['first-cp'], u['last-cp']
+            for cp in range(first_cp, last_cp + 1):
+                ucd[cp] = u
 
 def load_ucdxml(s):
-	if hasattr(s, 'read'):
-		s =  s.read()
-	else:
-		if zipfile.is_zipfile(s):
-			with zipfile.ZipFile(s) as z:
-				with z.open(z.namelist()[0]) as s:
-					s = s.read()
-		else:
-			with open(s, 'rb') as s:
-				s = s.read()
+    if hasattr(s, 'read'):
+        s =  s.read()
+    else:
+        if zipfile.is_zipfile(s):
+            with zipfile.ZipFile(s) as z:
+                with z.open(z.namelist()[0]) as s:
+                    s = s.read()
+        else:
+            with open(s, 'rb') as s:
+                s = s.read()
 
-	ucdxml = objectify.fromstring(s)
-	ucd = [None] * 0x110000
-	for elt in ucdxml.repertoire.getchildren():
-		process_element(elt, ucd)
-	return ucd
+    ucdxml = objectify.fromstring(s)
+    ucd = [None] * 0x110000
+    for elt in ucdxml.repertoire.getchildren():
+        process_element(elt, ucd)
+    return ucd
 
