@@ -56,9 +56,10 @@ def load_ucdxml(s):
             with open(s, 'rb') as s:
                 s = s.read()
 
-    ucdxml = objectify.fromstring(s)
+    return objectify.fromstring(s)
+
+def ucdxml_get_repertoire(ucdxml):
     ucd = [None] * 0x110000
     for elt in ucdxml.repertoire.getchildren():
         process_element(elt, ucd)
     return ucd
-
